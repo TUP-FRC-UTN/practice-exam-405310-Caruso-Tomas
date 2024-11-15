@@ -1,0 +1,186 @@
+<form [formGroup]="orderForm" class="order-form">
+    <!-- Nombre -->
+    <div class="form-group" appPrueba="green">
+      <label for="name">Nombre:</label>
+      <input id="name" type="text" formControlName="name">
+      
+      <div *ngIf="orderForm.get('name')?.errors && orderForm.get('name')?.touched" 
+           class="error-messages">
+        <div *ngIf="orderForm.get('name')?.errors?.['required']">
+          El nombre es requerido
+        </div>
+        <div *ngIf="orderForm.get('name')?.errors?.['minlength']">
+          El nombre debe tener al menos 3 caracteres
+        </div>
+      </div>
+    </div>
+  
+    <!-- Email -->
+    <div class="form-group">
+      <label for="email">Email:</label>
+      <input id="email" type="email" formControlName="email" (ngModelChange)="changeEmail()">
+      
+      <div *ngIf="orderForm.get('email')?.errors && orderForm.get('email')?.touched" 
+           class="error-messages">
+        <div *ngIf="orderForm.get('email')?.errors?.['required']">
+          El email es requerido
+        </div>
+        <div *ngIf="orderForm.get('email')?.errors?.['email']">
+          El formato del email no es válido
+        </div>
+        <div *ngIf="orderForm.get('email')?.errors?.['emailOrderLimit']">
+          Has excedido el límite de 3 pedidos en las últimas 24 horas
+        </div>
+      </div>
+    </div>
+  
+    <!-- Productos -->
+    <div class="products-section" formArrayName="products">
+      <h3>Productos</h3>
+      
+      <!-- Errores generales de productos -->
+      <div *ngIf="products.errors" class="error-messages">
+        <div *ngIf="products.errors?.['atLeastOneProduct']">
+          Debe agregar al menos un producto
+        </div>
+        <div *ngIf="products.errors?.['max10Products']">
+          No puede exceder 10 productos en total
+        </div>
+        <div *ngIf="products.errors?.['nonDuplicated']">
+          No puede haber productos duplicados
+        </div>
+      </div>
+  
+      <!-- Lista de productos -->
+      <div *ngFor="let product of products.controls; let i = index" 
+           [formGroupName]="i" 
+           class="product-item">
+        
+        <select (change)="changeProduct(i,$event)">
+          <option value="">Seleccione un producto</option>
+          <option *ngFor="let p of productsFromAPI" 
+                  [value]="p.id">
+            {{p.name}}
+          </option>
+        </select>
+  
+        <div class="product-details">
+          <input type="number" formControlName="quantity" placeholder="Cantidad">
+          <input type="number" formControlName="price" readonly>
+          <input type="number" formControlName="stock" readonly>
+          
+          <!-- Errores de cantidad -->
+          <div *ngIf="product.get('quantity')?.errors && product.get('quantity')?.touched" 
+               class="error-messages">
+            <div *ngIf="product.get('quantity')?.errors?.['required']">
+              La cantidad es requerida
+            </div>
+            <div *ngIf="product.get('quantity')?.errors?.['min']">
+              La cantidad debe ser mayor a 0
+            </div>
+            <div *ngIf="product.get('quantity')?.errors?.['lessThanStock']">
+              La cantidad no puede superar el stock disponible
+            </div>
+          </div>
+        </div>
+  
+        <button type="button" 
+                (click)="removeProduct(i)" 
+                class="remove-btn">
+          Eliminar
+        </button>
+      </div>
+  
+      <button type="button" 
+              (click)="addProduct()" 
+              class="add-btn">
+        Agregar Producto
+      </button>
+    </div>
+  
+    <!-- Botón submit -->
+    <button type="submit" (click)="onSubmit()"
+            [disabled]="!orderForm.valid">
+      Crear Orden
+    </button>
+  </form>
+  
+  <style>
+  .order-form {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  input, select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .error-messages {
+    color: #dc3545;
+    font-size: 0.875em;
+    margin-top: 5px;
+  }
+  
+  .product-item {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+  }
+  
+  .product-details {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 10px 0;
+  }
+  
+  .remove-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .add-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  button[type="submit"] {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 20px;
+  }
+  
+  button[type="submit"]:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  </style>
